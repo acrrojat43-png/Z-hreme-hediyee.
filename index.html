@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zühre & Rojat</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Great+Vibes&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #1a1a2e; font-family: 'Poppins', sans-serif; color: #fff; min-height: 100vh; display: flex; flex-direction: column; align-items: center; overflow-x: hidden; position: relative; }
+        .top-header { width: 100%; background: linear-gradient(90deg, #ff4b2b, #ff416c); color: white; text-align: center; padding: 12px; font-size: 1.3rem; font-weight: bold; z-index: 10; }
+        .game-container { position: relative; width: 100%; max-width: 500px; height: 380px; background: linear-gradient(to bottom, #16213e, #0f3460); border-radius: 20px; margin: 20px 0; overflow: hidden; border: 3px solid #ff416c; display: flex; flex-direction: column; justify-content: space-between; align-items: center; }
+        .volleyball-court { position: absolute; bottom: 0; width: 100%; height: 120px; background: #e94560; border-top: 4px solid #fff; display: flex; justify-content: center; }
+        .net { position: absolute; bottom: 0; width: 6px; height: 100px; background: white; z-index: 2; }
+        .player { position: absolute; bottom: 30px; display: flex; flex-direction: column; align-items: center; transition: all 0.3s ease; z-index: 3; }
+        .player-head { width: 40px; height: 40px; background: #ffe0bd; border-radius: 50%; border: 2px solid #333; }
+        .player-body { width: 30px; height: 50px; background: #ff416c; border-radius: 8px 8px 0 0; }
+        .player-name { background: rgba(255, 255, 255, 0.9); color: #0f3460; font-weight: bold; padding: 2px 10px; border-radius: 10px; font-size: 0.8rem; margin-bottom: 5px; }
+        #player-zuhre { left: 40px; }
+        #player-rojat { right: 40px; }
+        #player-rojat .player-body { background: #4e54c8; }
+        .ball { position: absolute; width: 30px; height: 30px; background: #fff; border-radius: 50%; border: 2px solid #333; z-index: 4; transition: all 0.5s ease; }
+        .pass-btn { background: #ff416c; color: white; border: none; padding: 12px 35px; font-size: 1.2rem; font-weight: bold; border-radius: 25px; cursor: pointer; margin-top: 15px; z-index: 5; }
+        .crack-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 99; display: none; }
+        .glass-crack { width: 100%; height: 100%; background: radial-gradient(circle at center, transparent 30%, rgba(255,255,255,0.1) 31%, transparent 32%); backdrop-filter: blur(2px); }
+        .proposal-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.95); z-index: 100; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; overflow-y: auto; }
+        .proposal-text { font-size: 1.1rem; line-height: 1.6; max-width: 450px; background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 15px; margin-bottom: 25px; }
+        .ring-box-container { margin: 15px 0; cursor: pointer; display: flex; flex-direction: column; align-items: center; }
+        .ring-box { font-size: 80px; }
+        .ring-box-label { font-size: 0.9rem; color: #ff758c; margin-top: 5px; }
+        .buttons-group { display: flex; gap: 20px; margin-top: 25px; position: relative; min-height: 60px; width: 100%; max-width: 300px; justify-content: center; }
+        .btn-yes { background: #2ecc71; color: white; border: none; padding: 12px 30px; font-size: 1.2rem; font-weight: bold; border-radius: 25px; cursor: pointer; }
+        .btn-no { background: #e74c3c; color: white; border: none; padding: 12px 30px; font-size: 1.2rem; font-weight: bold; border-radius: 25px; cursor: pointer; position: absolute; right: 20px; }
+        .poem-container { display: none; background: rgba(255, 255, 255, 0.95); color: #2c3e50; padding: 25px; border-radius: 20px; max-width: 450px; margin-top: 20px; border: 3px solid #ff416c; }
+        .poem-title { font-family: 'Great Vibes', cursive; font-size: 2.5rem; color: #ff416c; margin-bottom: 15px; }
+        .poem-body { font-style: italic; font-size: 1rem; line-height: 1.8; color: #34495e; }
+    </style>
+</head>
+<body>
+    <div class="top-header">Rojat seni çok seviyor Zühre ❤️</div>
+    <div class="game-container">
+        <button class="pass-btn" id="passBtn" onclick="playVolleyball()">Tıkla (Pas At) 🏐</button>
+        <div class="ball" id="ball" style="left: 65px; bottom: 80px;"></div>
+        <div class="player" id="player-zuhre">
+            <div class="player-name">Zühre</div>
+            <div class="player-head"></div>
+            <div class="player-body"></div>
+        </div>
+        <div class="net"></div>
+        <div class="player" id="player-rojat">
+            <div class="player-name">Rojat</div>
+            <div class="player-head"></div>
+            <div class="player-body"></div>
+        </div>
+        <div class="volleyball-court"></div>
+    </div>
+    <div class="crack-overlay" id="crackOverlay"><div class="glass-crack"></div></div>
+    <div class="proposal-modal" id="proposalModal">
+        <div class="proposal-text">Zühre ben Rojat, seni çok seviyorum. Bu zor zamanlarımda yanımda olduğun için çok teşekkürler. Seni hayatımdan çok seviyorum. Benimle evlenir misin? ❤️</div>
+        <div class="ring-box-container" onclick="openRingBox()">
+            <div class="ring-box" id="ringBox">🎁</div>
+            <div class="ring-box-label" id="ringLabel">Tıkla ve Kutuyu Aç 💍</div>
+        </div>
+        <div class="buttons-group" id="actionButtons" style="display: none;">
+            <button class="btn-yes" onclick="acceptProposal()">EVET ❤️</button>
+            <button class="btn-no" id="noBtn" onmouseover="moveNoButton()" onclick="moveNoButton()">HAYIR 💔</button>
+        </div>
+        <div class="poem-container" id="poemContainer">
+            <div class="poem-title">Sonsuzluğuma...</div>
+            <div class="poem-body">
+                Gözlerinle başladı hayatımın en güzel masalı,<br>
+                Zor zamanlarımda limanım, karanlığımda ışığım oldun.<br>
+                Ellerini tuttuğum an durur zamanın akışı,<br>
+                Sen benim bu dünyadaki en güzel yanım oldun.<br><br>
+                Şimdi bir ömür aynı gökyüzüne bakalım,<br>
+                Gülüşünle aydınlansın her günümüz, her anımız.<br>
+                İyi ki sensin Zühre'm, iyi ki biziz...<br>
+                Seni hayatımdan çok seviyorum. ❤️
+            </div>
+        </div>
+    </div>
+    <script>
+        let turn = 0, passesCount = 0;
+        const ball = document.getElementById('ball'), zuhre = document.getElementById('player-zuhre'), rojat = document.getElementById('player-rojat');
+        function playVolleyball() {
+            passesCount++;
+            if (passesCount >= 5) {
+                ball.style.left = '50%'; ball.style.bottom = '50%'; ball.style.transform = 'translate(-50%, 50%) scale(8)';
+                setTimeout(() => { document.getElementById('crackOverlay').style.display = 'block'; document.getElementById('proposalModal').style.display = 'flex'; }, 400);
+                return;
+            }
+            if (turn === 0) {
+                ball.style.left = 'calc(100% - 95px)'; ball.style.bottom = '160px';
+                setTimeout(() => { ball.style.bottom = '80px'; }, 250); turn = 1;
+            } else {
+                ball.style.left = '65px'; ball.style.bottom = '160px';
+                setTimeout(() => { ball.style.bottom = '80px'; }, 250); turn = 0;
+            }
+        }
+        function openRingBox() {
+            document.getElementById('ringBox').innerHTML = '💍';
+            document.getElementById('ringLabel').innerText = 'Sonsuza Dek!';
+            document.getElementById('actionButtons').style.display = 'flex';
+        }
+        let noBtn = document.getElementById('noBtn');
+        function moveNoButton() {
+            const x = Math.random() * 160 - 80;
+            const y = Math.random() * 160 - 80;
+            noBtn.style.transform = `translate(${x}px, ${y}px)`;
+        }
+        function acceptProposal() {
+            confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+            document.getElementById('actionButtons').style.display = 'none';
+            document.getElementById('poemContainer').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
